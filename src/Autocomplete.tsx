@@ -1,11 +1,18 @@
+/* eslint-disable @typescript-eslint/no-unused-vars */
+import clsx from "clsx";
+import keycode from "keycode";
+import "./Autocomplete.css";
 import React, {
   ChangeEventHandler,
+  Dispatch,
+  SetStateAction,
   useCallback,
   useEffect,
   useRef,
   useState,
 } from "react";
-import { createKeyUpHandler } from "./keyUpHandler";
+import { EssentialKeys } from "./EssentialKeys";
+import { useHighlightedOptionIndex } from "./useHighlightedOptionIndex";
 import { VisuallyHidden } from "./VisuallyHidden";
 
 export type AutocompleteProps<T> = {
@@ -43,16 +50,12 @@ export function Autocomplete<T>({
     ""
   );
 
-  const clickEventListener = useCallback((e) => {
-    console.log(e.target);
-    if (!container?.current?.contains(e.target)) {
-      setShowOptions(false);
-    }
-  }, []);
-  useEffect(() => {
-    document.addEventListener("click", clickEventListener);
-    return () => document.removeEventListener("click", clickEventListener);
-  }, []);
+  const {
+    highlightedOptionIndex,
+    increaseIndex,
+    decreaseIndex,
+  } = useHighlightedOptionIndex({ options, initialIndex: -1 });
+
   const [filteredOptions, setFilteredOptions] = useState(options);
   const [showOptions, setShowOptions] = useState(false);
   useEffect(() => {
@@ -65,10 +68,23 @@ export function Autocomplete<T>({
   const onInputChange: ChangeEventHandler<HTMLInputElement> = (e) => {
     setTextInputIntermediateValue(e.target.value);
   };
-  const keyUpHandler = createKeyUpHandler({ setShowOptions });
-  // const handleKeyCode = (event: React.ChangeEvent<HTMLInputElement> => {
-  //   console.log(keycode(event.keyCode));
-  // };
+
+  const navigateUp = () => {
+    decreaseIndex();
+  };
+
+  const navigateDown = () => {
+    increaseIndex();
+  };
+
+  const keyUpHandler = createKeyUpHandler({
+    showOptions: () => setShowOptions(true),
+    hideOptions: () => setShowOptions(false),
+    navigateUp,
+    navigateDown,
+  });
+
+  useClickEventListener(container, setShowOptions);
   return (
     <div className="field" ref={container} style={{ maxWidth: "200px" }}>
       <label htmlFor={id}>
@@ -108,6 +124,9 @@ export function Autocomplete<T>({
                 role="option"
                 tabIndex={-1}
                 aria-selected={getValue(option) === value}
+                className={clsx({
+                  highlighted: highlightedOptionIndex === index,
+                })}
                 key={getLabel(option)}
                 id={`autocomplete_${index}`}
               >
@@ -124,4 +143,55 @@ export function Autocomplete<T>({
       </div>
     </div>
   );
+}
+
+export const createKeyUpHandler = ({
+  showOptions,
+  hideOptions,
+  navigateUp,
+  navigateDown,
+}: {
+  showOptions: () => void;
+  hideOptions: () => void;
+  navigateUp: () => void;
+  navigateDown: () => void;
+}) => (e) => {
+  console.log("focused");
+  const pressedKey = keycode(e);
+  console.log(keycode(e));
+  switch (pressedKey) {
+    case EssentialKeys.Down:
+      navigateDown();
+      break;
+    case EssentialKeys.Up:
+      navigateUp();
+      break;
+    case EssentialKeys.Left:
+    case EssentialKeys.Right:
+    case EssentialKeys.Enter:
+    case EssentialKeys.Esc:
+      hideOptions();
+      break;
+    case EssentialKeys.Tab:
+      hideOptions();
+      break;
+    default:
+      showOptions();
+  }
+};
+
+function useClickEventListener(
+  container: React.RefObject<HTMLDivElement>,
+  setShowOptions: React.Dispatch<React.SetStateAction<boolean>>
+) {
+  const clickEventListener = useCallback((e) => {
+    console.log(e.target);
+    if (!container?.current?.contains(e.target)) {
+      setShowOptions(false);
+    }
+  }, []);
+  useEffect(() => {
+    document.addEventListener("click", clickEventListener);
+    return () => document.removeEventListener("click", clickEventListener);
+  }, [clickEventListener]);
 }
