@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useState } from "react";
 import { VisuallyHidden } from "./VisuallyHidden";
 
 export type AutocompleteProps<T> = {
@@ -20,6 +20,8 @@ export function Autocomplete<T>({
   getValue = defaultGetter,
   options,
 }: AutocompleteProps<T>) {
+  const [isExpanded, setIsExpanded] = useState(false);
+  const [value, setValue] = useState();
   return (
     <div className="field">
       <label htmlFor={id}>
@@ -36,8 +38,8 @@ export function Autocomplete<T>({
           autoComplete="off"
           aria-autocomplete="list" // eslint-disable-next-line jsx-a11y/role-has-required-aria-props
           role="combobox"
-          id="destination"
-          aria-expanded="false"
+          id={id || undefined}
+          aria-expanded={isExpanded}
         />
         <svg
           focusable="false"
@@ -45,7 +47,7 @@ export function Autocomplete<T>({
           xmlns="http://www.w3.org/2000/svg"
         ></svg>
         <ul
-          id="autocomplete-options--destination"
+          id={`autocomplete-options--${id}`}
           role="listbox"
           className="hidden"
         >
@@ -53,8 +55,7 @@ export function Autocomplete<T>({
             <li
               role="option"
               tabIndex={-1}
-              aria-selected="false"
-              data-option-value="1"
+              aria-selected={getValue(option) === value}
               id={`autocomplete_${index}`}
             >
               {getLabel(option)}
