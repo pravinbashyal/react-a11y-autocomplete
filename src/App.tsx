@@ -1,14 +1,24 @@
 import React from "react";
-import logo from "./logo.svg";
 import "./App.css";
 import { Autocomplete } from "./Autocomplete";
 
 function App() {
-  const options = ["option1", "option2"];
+  const options = [
+    "apple",
+    "orange",
+    "grapes",
+    "mango",
+    "pineapple",
+    "grapefruit",
+    "kiwi",
+    "papaya",
+    "lime",
+    "fingerlime",
+  ];
   const getLabel = (option) => option;
   const getValue = (option) => option;
-  const label = "";
-  const inputId = "";
+  const label = "Options";
+  const inputId = "opt";
   return (
     <Autocomplete
       options={options}

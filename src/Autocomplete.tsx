@@ -1,5 +1,11 @@
-import React, { useCallback, useRef, useState } from "react";
-import { keyUpHandler } from "./keyUpHandler";
+import React, {
+  ChangeEventHandler,
+  useCallback,
+  useEffect,
+  useRef,
+  useState,
+} from "react";
+import { createKeyUpHandler } from "./keyUpHandler";
 import { VisuallyHidden } from "./VisuallyHidden";
 
 export type AutocompleteProps<T> = {
@@ -15,6 +21,13 @@ function defaultGetter<T>(option: T) {
   return (option as never) as string;
 }
 
+export const searchTextIsASubstring = (
+  value1: string | number,
+  value2: string | number
+): boolean => {
+  return String(value1).toLowerCase().includes(String(value2).toLowerCase());
+};
+
 export function Autocomplete<T>({
   id,
   label,
@@ -25,17 +38,39 @@ export function Autocomplete<T>({
 }: AutocompleteProps<T>) {
   const [isExpanded, setIsExpanded] = useState(false);
   const inputEl = useRef<HTMLInputElement>(null);
-  const onFocus = () => {
-    inputEl?.current?.addEventListener("keyup", keyUpHandler);
+  const container = useRef<HTMLDivElement>(null);
+  const [textInputIntermediateValue, setTextInputIntermediateValue] = useState(
+    ""
+  );
+
+  const clickEventListener = useCallback((e) => {
+    console.log(e.target);
+    if (!container?.current?.contains(e.target)) {
+      setShowOptions(false);
+    }
+  }, []);
+  useEffect(() => {
+    document.addEventListener("click", clickEventListener);
+    return () => document.removeEventListener("click", clickEventListener);
+  }, []);
+  const [filteredOptions, setFilteredOptions] = useState(options);
+  const [showOptions, setShowOptions] = useState(false);
+  useEffect(() => {
+    setFilteredOptions(
+      options.filter((option) =>
+        searchTextIsASubstring(getLabel(option), textInputIntermediateValue)
+      )
+    );
+  }, [getLabel, options, textInputIntermediateValue]);
+  const onInputChange: ChangeEventHandler<HTMLInputElement> = (e) => {
+    setTextInputIntermediateValue(e.target.value);
   };
-  const onBlur = () => {
-    inputEl?.current?.removeEventListener("keyup", keyUpHandler);
-  };
+  const keyUpHandler = createKeyUpHandler({ setShowOptions });
   // const handleKeyCode = (event: React.ChangeEvent<HTMLInputElement> => {
   //   console.log(keycode(event.keyCode));
   // };
   return (
-    <div className="field">
+    <div className="field" ref={container} style={{ maxWidth: "200px" }}>
       <label htmlFor={id}>
         <span className="field-label">{label}</span>
       </label>
@@ -52,35 +87,38 @@ export function Autocomplete<T>({
           aria-autocomplete="list" // eslint-disable-next-line jsx-a11y/role-has-required-aria-props
           role="combobox"
           id={id || undefined}
-          onFocus={onFocus}
-          onBlur={onBlur}
           aria-expanded={isExpanded}
+          value={textInputIntermediateValue}
+          onKeyUp={(e) => {
+            e.preventDefault();
+            keyUpHandler(e);
+            e.stopPropagation();
+          }}
+          onFocus={(_) => setShowOptions(true)}
+          onChange={onInputChange}
         />
-        <svg
-          focusable="false"
-          version="1.1"
-          xmlns="http://www.w3.org/2000/svg"
-        ></svg>
-        <ul
-          id={`autocomplete-options--${id}`}
-          role="listbox"
-          className="hidden"
-        >
-          {options.map((option, index) => (
-            <li
-              role="option"
-              tabIndex={-1}
-              aria-selected={getValue(option) === value}
-              id={`autocomplete_${index}`}
-            >
-              {getLabel(option)}
-              {getValue(option)}
-            </li>
-          ))}
-        </ul>
+        {showOptions && (
+          <ul
+            id={`autocomplete-options--${id}`}
+            role="listbox"
+            className="hidden"
+          >
+            {filteredOptions.map((option, index) => (
+              <li
+                role="option"
+                tabIndex={-1}
+                aria-selected={getValue(option) === value}
+                key={getLabel(option)}
+                id={`autocomplete_${index}`}
+              >
+                {getLabel(option)}
+              </li>
+            ))}
+          </ul>
+        )}
         <VisuallyHidden>
           <div aria-live="polite" role="status">
-            13 results available.
+            {filteredOptions.length} results available.
           </div>
         </VisuallyHidden>
       </div>

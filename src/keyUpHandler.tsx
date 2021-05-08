@@ -1,7 +1,13 @@
 import keycode from "keycode";
+import React, { Dispatch, SetStateAction } from "react";
 import { EssentialKeys } from "./EssentialKeys";
 
-export const keyUpHandler = (e) => {
+export const createKeyUpHandler = ({
+  setShowOptions,
+}: {
+  setShowOptions: Dispatch<SetStateAction<boolean>>;
+}) => (e) => {
+  console.log("focused");
   const pressedKey = keycode(e);
   console.log(keycode(e));
   switch (pressedKey) {
@@ -10,8 +16,14 @@ export const keyUpHandler = (e) => {
     case EssentialKeys.Left:
     case EssentialKeys.Right:
     case EssentialKeys.Enter:
+    case EssentialKeys.Esc:
+      setShowOptions(false);
+      break;
+    case EssentialKeys.Tab:
+      setShowOptions(false);
+      break;
     default:
-      console.log("hello");
+      setShowOptions(() => true);
   }
   //   switch (e.keyCode) {
   //     case this.keys.esc:

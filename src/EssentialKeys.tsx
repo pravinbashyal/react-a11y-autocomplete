@@ -4,4 +4,6 @@ export enum EssentialKeys {
   Up = "up",
   Down = "down",
   Enter = "enter",
+  Esc = "esc",
+  Tab = "tab",
 }
