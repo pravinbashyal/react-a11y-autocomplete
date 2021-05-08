@@ -1,16 +1,21 @@
-import React, { FC } from "react";
+import React, { DetailedHTMLProps, FC, HTMLAttributes } from "react";
 
-export const VisuallyHidden: FC<{}> = ({ children }) => (
+export const VisuallyHidden: FC<
+  {} & DetailedHTMLProps<HTMLAttributes<HTMLDivElement>, HTMLDivElement>
+> = ({ children, ...props }) => (
   <div
     style={{
-      clipPath: "inset(100%)",
-      clip: "rect(1px, 1px, 1px, 1px)",
+      border: "0px",
+      clip: "rect(0px, 0px, 0px, 0px)",
       height: "1px",
       width: "1px",
+      margin: "-1px",
+      padding: "0px",
       overflow: "hidden",
-      position: "absolute",
       whiteSpace: "nowrap",
+      position: "absolute",
     }}
+    {...props}
   >
     {children}
   </div>

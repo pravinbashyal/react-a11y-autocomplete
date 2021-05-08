@@ -1,19 +1,18 @@
 /* eslint-disable @typescript-eslint/no-unused-vars */
 import clsx from "clsx";
-import keycode from "keycode";
 import "./Autocomplete.css";
-import React, {
+import {
   ChangeEventHandler,
   Dispatch,
   SetStateAction,
-  useCallback,
   useEffect,
   useRef,
   useState,
 } from "react";
-import { EssentialKeys } from "./EssentialKeys";
 import { useHighlightedOptionIndex } from "./useHighlightedOptionIndex";
 import { VisuallyHidden } from "./VisuallyHidden";
+import { useClickEventListener } from "./useClickEventListener";
+import { createKeyUpHandler } from "./createKeyUpHandler";
 
 export type AutocompleteProps<T> = {
   id?: string;
@@ -142,73 +141,10 @@ export function Autocomplete<T>({
             ))}
           </ul>
         )}
-        <VisuallyHidden>
-          <div aria-live="polite" role="status">
-            {filteredOptions.length} results available.
-          </div>
+        <VisuallyHidden aria-live="polite" role="status">
+          {filteredOptions.length} results available.
         </VisuallyHidden>
       </div>
     </div>
   );
-}
-
-export const createKeyUpHandler = ({
-  showOptions,
-  hideOptions,
-  navigateUp,
-  navigateDown,
-  navigateLeft,
-  navigateRight,
-  onEnterPress,
-}: {
-  showOptions: () => void;
-  hideOptions: () => void;
-  navigateUp: () => void;
-  navigateDown: () => void;
-  navigateLeft: () => void;
-  navigateRight: () => void;
-}) => (e) => {
-  console.log("focused");
-  const pressedKey = keycode(e);
-  console.log(keycode(e));
-  switch (pressedKey) {
-    case EssentialKeys.Down:
-      navigateDown();
-      break;
-    case EssentialKeys.Up:
-      navigateUp();
-      break;
-    case EssentialKeys.Left:
-      navigateLeft();
-      break;
-    case EssentialKeys.Right:
-      navigateRight();
-      break;
-    case EssentialKeys.Enter:
-      onEnterPress();
-      break;
-    case EssentialKeys.Esc:
-      hideOptions();
-      break;
-    case EssentialKeys.Tab:
-      hideOptions();
-      break;
-    default:
-      showOptions();
-  }
-};
-
-function useClickEventListener(
-  container: React.RefObject<HTMLDivElement>,
-  cb: () => void
-) {
-  const clickEventListener = useCallback((e) => {
-    if (!container?.current?.contains(e.target)) {
-      cb();
-    }
-  }, []);
-  useEffect(() => {
-    document.addEventListener("click", clickEventListener);
-    return () => document.removeEventListener("click", clickEventListener);
-  }, [clickEventListener]);
 }
