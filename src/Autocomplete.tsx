@@ -22,6 +22,7 @@ export type AutocompleteProps<T> = {
   getValue?: (option: T) => any;
   value?: any;
   options: T[];
+  onOptionSelect: (option: T) => void;
 };
 
 function defaultGetter<T>(option: T) {
@@ -42,18 +43,19 @@ export function Autocomplete<T>({
   getValue = defaultGetter,
   value,
   options,
+  onOptionSelect: onOptionSelectProp,
 }: AutocompleteProps<T>) {
-  const [isExpanded, setIsExpanded] = useState(false);
   const inputEl = useRef<HTMLInputElement>(null);
   const container = useRef<HTMLDivElement>(null);
   const [textInputIntermediateValue, setTextInputIntermediateValue] = useState(
-    ""
+    getLabel(value) || ""
   );
 
   const {
     highlightedOptionIndex,
     increaseIndex,
     decreaseIndex,
+    resetIndex,
   } = useHighlightedOptionIndex({ options, initialIndex: -1 });
 
   const [filteredOptions, setFilteredOptions] = useState(options);
@@ -69,22 +71,28 @@ export function Autocomplete<T>({
     setTextInputIntermediateValue(e.target.value);
   };
 
-  const navigateUp = () => {
-    decreaseIndex();
-  };
-
-  const navigateDown = () => {
-    increaseIndex();
+  const onOptionSelect = (option) => {
+    onOptionSelectProp(option);
+    setTextInputIntermediateValue(getLabel(option));
   };
 
   const keyUpHandler = createKeyUpHandler({
     showOptions: () => setShowOptions(true),
     hideOptions: () => setShowOptions(false),
-    navigateUp,
-    navigateDown,
+    navigateUp: decreaseIndex,
+    navigateDown: increaseIndex,
+    navigateLeft: increaseIndex,
+    navigateRight: decreaseIndex,
+    onEnterPress: () => {
+      onOptionSelect(options[highlightedOptionIndex]);
+    },
   });
 
-  useClickEventListener(container, setShowOptions);
+  useClickEventListener(container, () => {
+    setShowOptions(false);
+    resetIndex();
+  });
+
   return (
     <div className="field" ref={container} style={{ maxWidth: "200px" }}>
       <label htmlFor={id}>
@@ -103,13 +111,9 @@ export function Autocomplete<T>({
           aria-autocomplete="list" // eslint-disable-next-line jsx-a11y/role-has-required-aria-props
           role="combobox"
           id={id || undefined}
-          aria-expanded={isExpanded}
+          aria-expanded={showOptions}
           value={textInputIntermediateValue}
-          onKeyUp={(e) => {
-            e.preventDefault();
-            keyUpHandler(e);
-            e.stopPropagation();
-          }}
+          onKeyUp={keyUpHandler}
           onFocus={(_) => setShowOptions(true)}
           onChange={onInputChange}
         />
@@ -129,6 +133,9 @@ export function Autocomplete<T>({
                 })}
                 key={getLabel(option)}
                 id={`autocomplete_${index}`}
+                onClick={(_) => {
+                  onOptionSelect(option);
+                }}
               >
                 {getLabel(option)}
               </li>
@@ -150,11 +157,16 @@ export const createKeyUpHandler = ({
   hideOptions,
   navigateUp,
   navigateDown,
+  navigateLeft,
+  navigateRight,
+  onEnterPress,
 }: {
   showOptions: () => void;
   hideOptions: () => void;
   navigateUp: () => void;
   navigateDown: () => void;
+  navigateLeft: () => void;
+  navigateRight: () => void;
 }) => (e) => {
   console.log("focused");
   const pressedKey = keycode(e);
@@ -167,8 +179,14 @@ export const createKeyUpHandler = ({
       navigateUp();
       break;
     case EssentialKeys.Left:
+      navigateLeft();
+      break;
     case EssentialKeys.Right:
+      navigateRight();
+      break;
     case EssentialKeys.Enter:
+      onEnterPress();
+      break;
     case EssentialKeys.Esc:
       hideOptions();
       break;
@@ -182,12 +200,11 @@ export const createKeyUpHandler = ({
 
 function useClickEventListener(
   container: React.RefObject<HTMLDivElement>,
-  setShowOptions: React.Dispatch<React.SetStateAction<boolean>>
+  cb: () => void
 ) {
   const clickEventListener = useCallback((e) => {
-    console.log(e.target);
     if (!container?.current?.contains(e.target)) {
-      setShowOptions(false);
+      cb();
     }
   }, []);
   useEffect(() => {

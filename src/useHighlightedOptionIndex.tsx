@@ -33,5 +33,6 @@ export function useHighlightedOptionIndex<T>({
     highlightedOptionIndex,
     increaseIndex: increaseHighlightedOptionIndex,
     decreaseIndex: decreaseHighlightedOptionIndex,
+    resetIndex: () => setHighlightedOptionIndex(-1),
   };
 }

@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useState } from "react";
 import "./App.css";
 import { Autocomplete } from "./Autocomplete";
 
@@ -19,6 +19,7 @@ function App() {
   const getValue = (option) => option;
   const label = "Options";
   const inputId = "opt";
+  const [value, setValue] = useState<string>();
   return (
     <Autocomplete
       options={options}
@@ -26,6 +27,8 @@ function App() {
       getValue={getValue}
       label={label}
       id={inputId}
+      value={value}
+      onOptionSelect={(option) => setValue(option)}
     ></Autocomplete>
   );
 }
