@@ -1,4 +1,5 @@
 import React from "react";
+import { VisuallyHidden } from "./VisuallyHidden";
 
 export type AutocompleteProps<T> = {
   id?: string;
@@ -24,12 +25,9 @@ export function Autocomplete<T>({
       <label htmlFor={id}>
         <span className="field-label">{label}</span>
       </label>
-      <select
-        name="destination"
-        aria-hidden="true"
-        tabIndex={-1}
-        className="visually-hidden"
-      ></select>
+      <VisuallyHidden>
+        <select name="destination" aria-hidden="true" tabIndex={-1}></select>
+      </VisuallyHidden>
       <div className="autocomplete">
         <input
           aria-owns="autocomplete-options--destination"
@@ -64,9 +62,11 @@ export function Autocomplete<T>({
             </li>
           ))}
         </ul>
-        <div aria-live="polite" role="status" className="visually-hidden">
-          13 results available.
-        </div>
+        <VisuallyHidden>
+          <div aria-live="polite" role="status">
+            13 results available.
+          </div>
+        </VisuallyHidden>
       </div>
     </div>
   );
