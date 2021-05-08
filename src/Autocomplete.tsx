@@ -6,6 +6,7 @@ export type AutocompleteProps<T> = {
   label: string;
   getLabel?: (option: T) => string;
   getValue?: (option: T) => any;
+  value?: any;
   options: T[];
 };
 
@@ -18,10 +19,10 @@ export function Autocomplete<T>({
   label,
   getLabel = defaultGetter,
   getValue = defaultGetter,
+  value,
   options,
 }: AutocompleteProps<T>) {
   const [isExpanded, setIsExpanded] = useState(false);
-  const [value, setValue] = useState();
   return (
     <div className="field">
       <label htmlFor={id}>
