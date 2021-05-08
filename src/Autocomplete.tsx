@@ -1,4 +1,5 @@
-import React, { useState } from "react";
+import React, { useCallback, useRef, useState } from "react";
+import { keyUpHandler } from "./keyUpHandler";
 import { VisuallyHidden } from "./VisuallyHidden";
 
 export type AutocompleteProps<T> = {
@@ -23,6 +24,16 @@ export function Autocomplete<T>({
   options,
 }: AutocompleteProps<T>) {
   const [isExpanded, setIsExpanded] = useState(false);
+  const inputEl = useRef<HTMLInputElement>(null);
+  const onFocus = () => {
+    inputEl?.current?.addEventListener("keyup", keyUpHandler);
+  };
+  const onBlur = () => {
+    inputEl?.current?.removeEventListener("keyup", keyUpHandler);
+  };
+  // const handleKeyCode = (event: React.ChangeEvent<HTMLInputElement> => {
+  //   console.log(keycode(event.keyCode));
+  // };
   return (
     <div className="field">
       <label htmlFor={id}>
@@ -34,12 +45,15 @@ export function Autocomplete<T>({
       <div className="autocomplete">
         <input
           aria-owns="autocomplete-options--destination"
+          ref={inputEl}
           autoCapitalize="none"
           type="text"
           autoComplete="off"
           aria-autocomplete="list" // eslint-disable-next-line jsx-a11y/role-has-required-aria-props
           role="combobox"
           id={id || undefined}
+          onFocus={onFocus}
+          onBlur={onBlur}
           aria-expanded={isExpanded}
         />
         <svg
