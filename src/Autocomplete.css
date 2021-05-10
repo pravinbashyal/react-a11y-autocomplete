@@ -1,3 +1,51 @@
 .highlighted {
   background: rgba(200,200,200, 0.3);
 }
+
+.inputArea {
+  margin: 1rem 0.5rem;
+}
+
+.menuBox {
+  position: absolute;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  background: white;
+  border: 1px solid rgba(200,200,200,0.8);
+  top: 2.5rem;
+  left: 0;
+  min-width: 200px;
+  max-height: 400px;
+  overflow: scroll;
+}
+
+.menuBox li {
+  padding: 8px 16px;
+  min-width: inherit;
+  cursor: default;
+}
+
+.menuBox li:hover,li:focus-within {
+  background: rgba(200,200,200, 0.3);
+}
+
+.autocomplete {
+  position: relative;
+  display: flex;
+  padding: 0.5rem 1rem;
+  border: 1px solid rgba(200,200,200,0.8);
+  border-radius: 4px;
+}
+
+.autocomplete input {
+  border: none;
+  outline: none;
+  font-size: 1rem;
+  width: 100%;
+}
+
+.autocomplete input:focus {
+  border: none;
+  outline: none;
+}

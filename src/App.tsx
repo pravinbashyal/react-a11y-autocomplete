@@ -1,35 +1,33 @@
 import React, { useState } from "react";
 import "./App.css";
 import { Autocomplete } from "./Autocomplete";
+import { data } from "./data";
 
 function App() {
-  const options = [
-    "apple",
-    "orange",
-    "grapes",
-    "mango",
-    "pineapple",
-    "grapefruit",
-    "kiwi",
-    "papaya",
-    "lime",
-    "fingerlime",
-  ];
-  const getLabel = (option) => option;
-  const getValue = (option) => option;
+  const options = data;
   const label = "Options";
   const inputId = "opt";
   const [value, setValue] = useState<string>();
   return (
-    <Autocomplete
-      options={options}
-      getLabel={getLabel}
-      getValue={getValue}
-      label={label}
-      id={inputId}
-      value={value}
-      onOptionSelect={(option) => setValue(option)}
-    ></Autocomplete>
+    <section>
+      <h2>Autocomplete Demo</h2>
+      <span>Selected value is: {value || "unselected"}</span>
+      <form method="get" action="/">
+        <Autocomplete
+          name="fruits"
+          options={options}
+          label={label}
+          id={inputId}
+          value={value}
+          onOptionSelect={(option) => setValue(option)}
+          maxOptions={100}
+        ></Autocomplete>
+        <button type="submit" className="dummy-form-button">
+          Works with html form too
+        </button>
+      </form>
+      <div>placeholder div for styling overlap</div>
+    </section>
   );
 }
 
