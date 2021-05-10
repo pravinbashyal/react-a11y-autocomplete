@@ -1,5 +1,5 @@
 import keycode from "keycode";
-import { EssentialKeys } from "./EssentialKeys";
+import { EssentialKeys } from "../domain/EssentialKeys";
 
 export const createKeyDownHandler = ({
   showOptions,

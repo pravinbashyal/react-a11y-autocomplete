@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import "./App.css";
-import { Autocomplete } from "./Autocomplete";
+import { Autocomplete } from "./component/Autocomplete/Autocomplete";
 import { data } from "./data";
 
 function App() {

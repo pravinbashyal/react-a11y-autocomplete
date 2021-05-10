@@ -27,7 +27,7 @@ export function useFilteredOptions(
 
   useEffect(() => {
     const filtered = fuse.search(textInputIntermediateValue);
-    if (filtered.length === 0) {
+    if (filtered.length === 0 && textInputIntermediateValue === "") {
       setFilteredOptions(defaultOptions);
       return;
     }

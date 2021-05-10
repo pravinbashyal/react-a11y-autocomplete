@@ -1,11 +1,12 @@
 import "./Autocomplete.css";
 import { ChangeEventHandler, useEffect, useRef, useState } from "react";
-import { useHighlightedOptionIndex } from "./useHighlightedOptionIndex";
-import { VisuallyHidden } from "./VisuallyHidden";
-import { useClickEventListener } from "./useClickEventListener";
-import { createKeyDownHandler } from "./createKeyDownHandler";
-import { useFilteredOptions } from "./useFilteredOptions";
-import { HighlightedOption } from "./HighlightedOption";
+import { useHighlightedOptionIndex } from "./state/useHighlightedOptionIndex";
+import { VisuallyHidden } from "../common/VisuallyHidden";
+import { useClickEventListener } from "./app/useClickEventListener";
+import { createKeyDownHandler } from "./app/createKeyDownHandler";
+import { useFilteredOptions } from "./state/useFilteredOptions";
+import { HighlightedOption } from "./view/HighlightedOption";
+import { useMenuTransition } from "./app/useMenuTransition";
 
 export type AutocompleteProps = {
   id?: string;
@@ -173,19 +174,4 @@ export function Autocomplete({
       </div>
     </div>
   );
-}
-
-function useMenuTransition(hideOption: () => void) {
-  const blurTimeout = useRef<number>();
-
-  const onBlur = () => {
-    blurTimeout.current = window.setTimeout(() => {
-      hideOption();
-    }, 100);
-  };
-
-  const onMenuFocus = () => {
-    window.clearTimeout(blurTimeout.current);
-  };
-  return { onBlur, onMenuFocus };
 }
