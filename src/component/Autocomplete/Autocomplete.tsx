@@ -119,9 +119,13 @@ export function Autocomplete({
           ))}
         </select>
       </VisuallyHidden>
-      <div className="autocomplete" onKeyDown={keyDownHandler}>
+      <div
+        className="autocomplete"
+        onKeyDown={keyDownHandler}
+        data-testid={"autocomplete-section"}
+      >
         <input
-          aria-owns="autocomplete-options--destination"
+          aria-owns={`autocomplete-options--${id}`}
           ref={inputEl}
           autoCapitalize="none"
           type="text"
@@ -131,7 +135,6 @@ export function Autocomplete({
           id={id || undefined}
           aria-expanded={showOptions}
           value={textInputIntermediateValue}
-          onKeyDown={keyDownHandler}
           onFocus={() => {
             setShowOptions(true);
           }}

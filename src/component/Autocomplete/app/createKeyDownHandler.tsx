@@ -15,7 +15,6 @@ export const createKeyDownHandler = ({
   onEnterPress: () => void;
 }) => (e) => {
   const pressedKey = keycode(e);
-  console.log(pressedKey);
   switch (pressedKey) {
     case EssentialKeys.Down:
       navigateDown();

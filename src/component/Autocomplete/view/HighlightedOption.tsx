@@ -3,7 +3,7 @@ import { ReactElement } from "react";
 const isEven = (num) => num % 2 === 0;
 
 export const HighlightedOption = ({ matches, option }) => {
-  if (!matches?.indices) return <span aria-hidden="true">{option}</span>;
+  if (!matches?.[0]) return <span aria-hidden="true">{option}</span>;
   const highlightSeries = matches
     .map((match) => match.indices)
     .flat(2)
