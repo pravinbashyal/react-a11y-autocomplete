@@ -1,32 +1,22 @@
-/* eslint-disable @typescript-eslint/no-unused-vars */
-import clsx from "clsx";
 import "./Autocomplete.css";
-import {
-  ChangeEventHandler,
-  Dispatch,
-  SetStateAction,
-  useEffect,
-  useRef,
-  useState,
-} from "react";
+import { ChangeEventHandler, useEffect, useRef, useState } from "react";
 import { useHighlightedOptionIndex } from "./useHighlightedOptionIndex";
 import { VisuallyHidden } from "./VisuallyHidden";
 import { useClickEventListener } from "./useClickEventListener";
-import { createKeyUpHandler } from "./createKeyUpHandler";
+import { createKeyDownHandler } from "./createKeyDownHandler";
+import { useFilteredOptions } from "./useFilteredOptions";
+import { HighlightedOption } from "./HighlightedOption";
 
-export type AutocompleteProps<T> = {
+export type AutocompleteProps = {
   id?: string;
   label: string;
-  getLabel?: (option: T) => string;
-  getValue?: (option: T) => any;
   value?: any;
-  options: T[];
-  onOptionSelect: (option: T) => void;
+  options: string[];
+  onOptionSelect: (option: string) => void;
+  maxOptions?: number;
+  required?: boolean;
+  name?: string;
 };
-
-function defaultGetter<T>(option: T) {
-  return (option as never) as string;
-}
 
 export const searchTextIsASubstring = (
   value1: string | number,
@@ -35,19 +25,28 @@ export const searchTextIsASubstring = (
   return String(value1).toLowerCase().includes(String(value2).toLowerCase());
 };
 
-export function Autocomplete<T>({
+export function Autocomplete({
   id,
   label,
-  getLabel = defaultGetter,
-  getValue = defaultGetter,
   value,
   options,
   onOptionSelect: onOptionSelectProp,
-}: AutocompleteProps<T>) {
+  maxOptions = 15,
+  required,
+  name,
+}: AutocompleteProps) {
   const inputEl = useRef<HTMLInputElement>(null);
   const container = useRef<HTMLDivElement>(null);
+  const menuBox = useRef<HTMLUListElement>(null);
+
   const [textInputIntermediateValue, setTextInputIntermediateValue] = useState(
-    getLabel(value) || ""
+    value || ""
+  );
+
+  const filteredOptions = useFilteredOptions(
+    options,
+    textInputIntermediateValue,
+    maxOptions
   );
 
   const {
@@ -55,52 +54,71 @@ export function Autocomplete<T>({
     increaseIndex,
     decreaseIndex,
     resetIndex,
-  } = useHighlightedOptionIndex({ options, initialIndex: -1 });
+  } = useHighlightedOptionIndex({ filteredOptions, initialIndex: -1 });
 
-  const [filteredOptions, setFilteredOptions] = useState(options);
   const [showOptions, setShowOptions] = useState(false);
-  useEffect(() => {
-    setFilteredOptions(
-      options.filter((option) =>
-        searchTextIsASubstring(getLabel(option), textInputIntermediateValue)
-      )
-    );
-  }, [getLabel, options, textInputIntermediateValue]);
+
   const onInputChange: ChangeEventHandler<HTMLInputElement> = (e) => {
     setTextInputIntermediateValue(e.target.value);
+    resetIndex();
   };
 
-  const onOptionSelect = (option) => {
+  const onOptionSelect = (option: string) => {
     onOptionSelectProp(option);
-    setTextInputIntermediateValue(getLabel(option));
+    setShowOptions(false);
+    setTextInputIntermediateValue(option);
+    inputEl?.current?.blur();
   };
 
-  const keyUpHandler = createKeyUpHandler({
+  const keyDownHandler = createKeyDownHandler({
     showOptions: () => setShowOptions(true),
     hideOptions: () => setShowOptions(false),
     navigateUp: decreaseIndex,
     navigateDown: increaseIndex,
-    navigateLeft: increaseIndex,
-    navigateRight: decreaseIndex,
     onEnterPress: () => {
-      onOptionSelect(options[highlightedOptionIndex]);
+      if (filteredOptions[highlightedOptionIndex].item) {
+        onOptionSelect(filteredOptions[highlightedOptionIndex].item as string);
+      }
     },
   });
 
-  useClickEventListener(container, () => {
-    setShowOptions(false);
-    resetIndex();
+  useClickEventListener(container, {
+    onClickOutside: () => {
+      setShowOptions(false);
+      resetIndex();
+    },
   });
 
+  const { onBlur, onMenuFocus } = useMenuTransition(function hideOption() {
+    setShowOptions(false);
+  });
+
+  useEffect(() => {
+    const currentHighlight = menuBox?.current?.querySelectorAll("li")[
+      highlightedOptionIndex
+    ];
+    currentHighlight?.focus();
+  }, [highlightedOptionIndex]);
+
   return (
-    <div className="field" ref={container} style={{ maxWidth: "200px" }}>
+    <div ref={container} style={{ maxWidth: "200px" }} className="inputArea">
       <label htmlFor={id}>
         <span className="field-label">{label}</span>
       </label>
       <VisuallyHidden>
-        <select name="destination" aria-hidden="true" tabIndex={-1}></select>
+        <select
+          value={value}
+          name={name}
+          aria-hidden="true"
+          tabIndex={-1}
+          required={required}
+        >
+          {filteredOptions.map(({ item: option }) => (
+            <option value={option} key={option}></option>
+          ))}
+        </select>
       </VisuallyHidden>
-      <div className="autocomplete">
+      <div className="autocomplete" onKeyDown={keyDownHandler}>
         <input
           aria-owns="autocomplete-options--destination"
           ref={inputEl}
@@ -112,31 +130,39 @@ export function Autocomplete<T>({
           id={id || undefined}
           aria-expanded={showOptions}
           value={textInputIntermediateValue}
-          onKeyUp={keyUpHandler}
-          onFocus={(_) => setShowOptions(true)}
+          onKeyDown={keyDownHandler}
+          onFocus={() => {
+            setShowOptions(true);
+          }}
+          onBlur={onBlur}
           onChange={onInputChange}
+          className="input"
+          required={required}
         />
-        {showOptions && (
+        {showOptions && filteredOptions.length > 0 && (
           <ul
             id={`autocomplete-options--${id}`}
             role="listbox"
-            className="hidden"
+            className="menuBox"
+            onFocus={onMenuFocus}
+            ref={menuBox}
           >
-            {filteredOptions.map((option, index) => (
+            {filteredOptions.map(({ item: option, matches = [] }, index) => (
               <li
                 role="option"
                 tabIndex={-1}
-                aria-selected={getValue(option) === value}
-                className={clsx({
-                  highlighted: highlightedOptionIndex === index,
-                })}
-                key={getLabel(option)}
+                aria-selected={option === value}
+                key={option}
                 id={`autocomplete_${index}`}
                 onClick={(_) => {
-                  onOptionSelect(option);
+                  onOptionSelect(option as string);
                 }}
               >
-                {getLabel(option)}
+                <HighlightedOption
+                  matches={matches}
+                  option={option}
+                ></HighlightedOption>
+                <VisuallyHidden>{option}</VisuallyHidden>
               </li>
             ))}
           </ul>
@@ -147,4 +173,19 @@ export function Autocomplete<T>({
       </div>
     </div>
   );
+}
+
+function useMenuTransition(hideOption: () => void) {
+  const blurTimeout = useRef<number>();
+
+  const onBlur = () => {
+    blurTimeout.current = window.setTimeout(() => {
+      hideOption();
+    }, 100);
+  };
+
+  const onMenuFocus = () => {
+    window.clearTimeout(blurTimeout.current);
+  };
+  return { onBlur, onMenuFocus };
 }
