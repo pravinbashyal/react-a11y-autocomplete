@@ -1,10 +1,10 @@
 import { useState } from "react";
 
 export function useHighlightedOptionIndex<T>({
-  options,
+  filteredOptions,
   initialIndex = -1,
 }: {
-  options: T[];
+  filteredOptions: T[];
   initialIndex?: number;
 }) {
   const [highlightedOptionIndex, setHighlightedOptionIndex] = useState(
@@ -13,7 +13,7 @@ export function useHighlightedOptionIndex<T>({
 
   const increaseHighlightedOptionIndex = () => {
     setHighlightedOptionIndex((prevIndex) => {
-      if (prevIndex === options.length - 1) {
+      if (prevIndex === filteredOptions.length - 1) {
         return 0;
       }
       return prevIndex + 1;
@@ -23,7 +23,7 @@ export function useHighlightedOptionIndex<T>({
   const decreaseHighlightedOptionIndex = () => {
     setHighlightedOptionIndex((prevIndex) => {
       if (prevIndex === 0) {
-        return options.length - 1;
+        return filteredOptions.length - 1;
       }
       return prevIndex - 1;
     });
