@@ -76,7 +76,7 @@ export function Autocomplete({
     hideOptions: () => setShowOptions(false),
     navigateUp: decreaseIndex,
     navigateDown: increaseIndex,
-    onEnterPress: () => {
+    onSelect: () => {
       if (filteredOptions[highlightedOptionIndex].item) {
         onOptionSelect(filteredOptions[highlightedOptionIndex].item as string);
       }
@@ -119,11 +119,7 @@ export function Autocomplete({
           ))}
         </select>
       </VisuallyHidden>
-      <div
-        className="autocomplete"
-        onKeyDown={keyDownHandler}
-        data-testid={"autocomplete-section"}
-      >
+      <div className="autocomplete" data-testid={"autocomplete-section"}>
         <input
           aria-owns={`autocomplete-options--${id}`}
           ref={inputEl}
@@ -135,6 +131,7 @@ export function Autocomplete({
           id={id || undefined}
           aria-expanded={showOptions}
           value={textInputIntermediateValue}
+          onKeyDown={keyDownHandler}
           onFocus={() => {
             setShowOptions(true);
           }}
@@ -150,6 +147,7 @@ export function Autocomplete({
             className="menuBox"
             onFocus={onMenuFocus}
             ref={menuBox}
+            onKeyDown={keyDownHandler}
           >
             {filteredOptions.map(({ item: option, matches = [] }, index) => (
               <li

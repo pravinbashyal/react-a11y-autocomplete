@@ -5,14 +5,14 @@ export const createKeyDownHandler = ({
   showOptions,
   navigateUp,
   navigateDown,
-  onEnterPress,
+  onSelect,
   hideOptions,
 }: {
   showOptions: () => void;
   hideOptions: () => void;
   navigateUp: () => void;
   navigateDown: () => void;
-  onEnterPress: () => void;
+  onSelect: () => void;
 }) => (e) => {
   const pressedKey = keycode(e);
   switch (pressedKey) {
@@ -23,7 +23,10 @@ export const createKeyDownHandler = ({
       navigateUp();
       break;
     case EssentialKeys.Enter:
-      onEnterPress();
+      onSelect();
+      break;
+    case EssentialKeys.Space:
+      onSelect();
       break;
     case EssentialKeys.Esc:
       hideOptions();

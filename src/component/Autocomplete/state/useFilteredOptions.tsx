@@ -1,6 +1,8 @@
 import Fuse from "fuse.js";
 import { useEffect, useMemo, useState } from "react";
 
+const unique = require("array-unique");
+
 const config = {
   includeMatches: true,
   minMatchCharLength: 0,
@@ -22,7 +24,7 @@ export function useFilteredOptions(
   );
 
   const fuse = useMemo(() => {
-    return new Fuse(options, config);
+    return new Fuse(unique(options) as string[], config);
   }, [options]);
 
   useEffect(() => {
